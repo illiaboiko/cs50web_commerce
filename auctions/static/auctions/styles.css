@@ -1,0 +1,13 @@
+body {
+    padding: 10px;
+}
+
+.fakeimg {
+    height: 200px;
+    background: #aaa;
+}
+
+.card>i {
+    font-size: x-large; 
+    padding: 5px;
+}

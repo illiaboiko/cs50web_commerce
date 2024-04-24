@@ -1,0 +1,48 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}New Listing{% endblock title %}
+
+{% block body %}
+    <h2>New listing</h2>
+
+    <form action=" {% url "create_listing" %} " method="post">
+        {% csrf_token %}
+        <div class="mb-3 mt-3">
+            {% comment %}  title {% endcomment %}
+            <input type="text" name="title" id="title" class="form-control" placeholder="Title" name="title" required>
+        </div>
+        <div class="mb-3">
+            {% comment %}  description {% endcomment %}
+            <textarea class="form-control" rows="5" id="description" name="description" placeholder="Description" required></textarea>
+        </div>
+        <div class="mb-3">
+            <div class="row">
+                <div class="col">
+                    {% comment %}  start time {% endcomment %}
+                    <input type="text" name="start_time" id="start_time" class="form-control datepicker" placeholder="Start time" required>
+                </div>
+                <div class="col">
+                    {% comment %}  end time {% endcomment %}
+                    <input type="text" name="end_time" id="end_time" class="form-control datepicker" placeholder="End time" required>
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            {% comment %}  current price {% endcomment %}
+            <input type="number" class="form-control" min="0" name="current_price" placeholder="Starting price">
+        </div>
+        <div class="mb-3">
+            {% comment %}  categories {% endcomment %}
+            <select class="form-select" name="categories" id="categories" >
+                <option value=" " >Choose category</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}"> {{ category }} </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <input type="text" name="image_url" id="image_url" class="form-control" placeholder="URL to image">
+        </div>
+        <button type="submit" class="btn btn-primary">Create</button>
+    </form>
+{% endblock %}

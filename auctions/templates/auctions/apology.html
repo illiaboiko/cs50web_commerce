@@ -1,0 +1,11 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    {% if user.is_authenticated %}
+        
+        {% if message %}
+        <div class="alert alert-{{ message.bg_class }}">{{ message.text }}</div>
+        {% endif %}
+        
+{% endblock %}

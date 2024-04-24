@@ -1,0 +1,25 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+        <h2>My watchlist</h2>
+        
+            {% for listing in listings %}
+            <div class="row mb-5">
+                <div class="col-sm-4 text-center">
+                    <div class="card">
+                        <img src=" {{ listing.image_url }} " alt="image description" class="card-img-top fakeimg" alt="Listing image">
+                        <div class="card-body">
+                            <h4 class="card-title"> {{ listing.title }} </h4>
+                            <p class="card-text"> {{ listing.description }} </p>
+                            <a href=" {% url "listing" listing_id=listing.id %} " class="btn btn-primary">More details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        
+    {% else %}
+        <h2>You're not logged in to view the lisntings</h2>
+    {% endif %}
+{% endblock %}

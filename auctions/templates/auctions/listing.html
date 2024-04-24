@@ -1,0 +1,93 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+
+            <div class="container my-5">
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="form-row align-items-center">
+                                <div class="col-auto">
+
+                                    <form action="{% url "watchlist" %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                                        {% if in_watchlist %}
+                                        <input type="hidden" name="action" value="remove">
+                                        <button type="submit" class="btn btn-danger">Remove from Watchlist</button>
+                                        {% else %}
+                                        <input type="hidden" name="action" value="add">
+                                        <button type="submit" class="btn btn-secondary">Add to Watchlist</button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </div>
+                            {% if listing.is_active %}
+                                <span class="badge bg-info">Active</span>
+                            {% elif not listing.is_active %}
+                                <span class="badge bg-secondary">Sold</span>
+                            {% endif %}
+                            <img src=" {{ listing.image_url }} " alt="image description" class="card-img-top" alt="Listing image">
+                            <div class="card-body">
+                                <h4 class="card-title"> {{ listing.title }} </h4>
+                                <p class="card-text"> {{ listing.description }} </p>
+                                <p class="card-text">Starting bid: $ {{ initial_price }}</p>
+                                <p class="card-text">Current bid: <strong>$ {{ latest_bid.amount }}</strong>  by: {{ latest_bid.user }}</p>
+                                <p class="card-text"> {{ bids_count }} bids(s) so far </p>
+                                {% comment %} Bid form {% endcomment %}
+                                {% if listing.is_active %}
+                                    {% if user.id != listing.seller.id %}
+                                        <div class="container mt-5">
+                                            <form class="form-group" action="{% url "listing" listing_id=listing.id %}" method="post">
+
+                                                {% csrf_token %}
+                                                <input type="hidden" name="listing_id" value="{{ listing.id }} ">
+                                                <!-- Use Bootstrap's form-control class for styling and input-group for currency symbol -->
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">$</span> <!-- Dollar sign -->
+                                                    </div>
+                                                    
+                                                    <input type="number" class="form-control" id="bid" placeholder="0.00" name="bid" data-bs-toggle="tooltip" title="Your bid must greater than the current one">
+                                                    <button type="submit" class="btn btn-primary">Make your Bid</button>
+                                                </div>
+                                            
+                                            </form>
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    {% if user.id == listing.winner.id %}
+                                        <h2>Congrats! You're the winner</h2>
+                                    {% elif user.id != listing.seller.id %}
+                                        <h2>The bid is sold</h2>
+                                    {% endif %}
+                                {% endif %}
+
+                                {% if user.id == listing.seller.id %}
+                                    {% if listing.winner %}
+                                        <h2 class="text-color-red">You've sold the lot to {{ listing.winner.username }}</h2>
+                                    
+                                    {% else %}
+                                        <form action="{% url "close_auction" %}" method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                                            <button type="submit" class="btn btn-primary">Close and Sell</button>
+                                        </form>
+                                    {% endif %}
+                                {% else %}
+                                
+                                {% endif %}
+                                
+                                <p>Seller: {{ listing.seller.username }} </p>
+                                
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+            </div>
+            
+            {% else %}
+            <h2>You're not logged in to view the lisntings</h2>
+            {% endif %}
+{% endblock %}
