@@ -8,21 +8,10 @@ class NewListingForm(forms.ModelForm):
         fields = [
             "title",
             "description",
-            "start_time",
-            "end_time",
-            # "current_price",
             "categories",
             "image_url",
         ]
         
-        widgets = {
-            "start_time": forms.TextInput(attrs={
-                "class": "datepicker"
-            }),
-            "end_time": forms.TextInput(attrs={
-                "class": "datepicker"
-            })
-        }
 
 
 class CommentForm(forms.ModelForm):

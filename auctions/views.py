@@ -139,8 +139,6 @@ def create_listing(request):
             user = request.user
             title = request.POST["title"]
             description = request.POST["description"]
-            start_time = request.POST["start_time"]
-            end_time = request.POST["end_time"]
             starting_price = float(request.POST["current_price"])
             categories = request.POST.getlist("categories")
             image_url = request.POST["image_url"]
@@ -153,9 +151,6 @@ def create_listing(request):
                 title=title,
                 seller=user,
                 description=description,
-                start_time=start_time,
-                end_time=end_time,
-                # current_price=bid,
                 image_url=image_url,
             )
             new_listing.save()

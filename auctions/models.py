@@ -18,10 +18,6 @@ class Category(models.Model):
 class Listing(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
-    start_time = models.DateField()
-    end_time = models.DateField()
-    # starting_bid = models.FloatField()
-    # current_price = models.ForeignKey(Bid, on_delete=models.CASCADE, related_name="listing")
     seller = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="my_listings"
     )
