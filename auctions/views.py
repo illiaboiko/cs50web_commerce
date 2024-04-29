@@ -17,27 +17,31 @@ def index(request):
     # check if the user if authenciated
     if request.user.is_authenticated:
         listings = Listing.objects.filter(is_active=True)
+        categories = Category.objects.all()
+        
+        chosen_category = request.GET.get("show_category", False)
+        if chosen_category:
+            listings = listings.filter(categories__category=chosen_category)
+        
         watchlist_count = Watchlist.objects.filter(user=request.user).count()
 
-        # Create a list to store triples of listings and their data
-        listingData = []
-
-        
         for listing in listings:
             # Check if the listing is in the user's watchlist
             in_watchlist = Watchlist.objects.filter(user=request.user, listing=listing).exists()
             # get current bid of a listing
             current_bid = listing.bids.last().amount
 
-            # append the listing data to the list:
-            listingData.append((listing, in_watchlist, current_bid))
+            # add the listing data to the listing object:
+            listing.in_watchlist = in_watchlist
+            listing.current_bid = current_bid
         
         return render(
             request,
             "auctions/index.html",
             {
-                "listings": listingData,
+                "listings": listings,
                 "watchlist_count": watchlist_count,
+                "categories": categories,
             },
         )
     return render(request, "auctions/index.html")
@@ -185,6 +189,9 @@ def listing(request, listing_id):
         initial_price = listing.bids.first().amount
         latest_bid = listing.bids.last()
         bids_count = listing.bids.count()
+        # comments count for a particular listing
+        comments = listing.comments.all().order_by("-timestamp")
+        listing.comments_count = listing.comments.count()
         return render(
             request,
             "auctions/listing.html",
@@ -195,6 +202,7 @@ def listing(request, listing_id):
                 "latest_bid": latest_bid,
                 "initial_price": initial_price,
                 "bids_count": bids_count,
+                "comments": comments,
             },
         )
     elif request.method == "POST":
@@ -214,6 +222,23 @@ def listing(request, listing_id):
             messages.error(request, "Your bid must be greater than previous")
             return redirect('listing', listing_id=listing_id)     
 
+@login_required(login_url="login")
+def add_comment(request):
+    if request.method == "POST":
+        user = request.user
+        listing_id = request.POST["listing_id"]
+        listing = Listing.objects.get(pk=listing_id)
+        content= request.POST["content"]
+        comment = Comment(
+            user=user,
+            listing=listing,
+            content=content
+        )
+        comment.save()
+        
+        return redirect("listing", listing_id=listing_id)
+    else:
+        return redirect("listing")
 
 @login_required(login_url="login")
 def watchlist(request):

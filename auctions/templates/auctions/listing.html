@@ -3,91 +3,152 @@
 {% block body %}
     {% if user.is_authenticated %}
 
-            <div class="container my-5">
-                <div class="row row-cols-1 row-cols-md-3 g-4">
-                    <div class="col-md-6 mb-4">
-                        <div class="card">
-                            <div class="form-row align-items-center">
-                                <div class="col-auto">
+        <div class="container my-5">
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="form-row align-items-center">
+                            <div class="col-auto">
 
-                                    <form action="{% url "watchlist" %}" method="post">
+                                <form action="{% url "watchlist" %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                                    {% if in_watchlist %}
+                                    <input type="hidden" name="action" value="remove">
+                                    <button type="submit" class="btn btn-danger">Remove from Watchlist</button>
+                                    {% else %}
+                                    <input type="hidden" name="action" value="add">
+                                    <button type="submit" class="btn btn-secondary">Add to Watchlist</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                        {% if listing.is_active %}
+                            <span class="badge bg-info">Active</span>
+                        {% elif not listing.is_active %}
+                            <span class="badge bg-secondary">Sold</span>
+                        {% endif %}
+                        <img src=" {{ listing.image_url }} " alt="image description" class="card-img-top" alt="Listing image">
+                        <div class="card-body">
+                            <h4 class="card-title"> {{ listing.title }} </h4>
+                            <p class="card-text"> {{ listing.description }} </p>
+                            <p class="card-text">Starting bid: $ {{ initial_price }}</p>
+                            <p class="card-text">Current bid: <strong>$ {{ latest_bid.amount }}</strong>  by: {{ latest_bid.user }}</p>
+                            <p class="card-text"> {{ bids_count }} bids(s) so far </p>
+                            {% comment %} Bid form {% endcomment %}
+                            {% if listing.is_active %}
+                                {% if user.id != listing.seller.id %}
+                                    <div class="container mt-5">
+                                        <form class="form-group" action="{% url "listing" listing_id=listing.id %}" method="post">
+
+                                            {% csrf_token %}
+                                            <input type="hidden" name="listing_id" value="{{ listing.id }} ">
+                                            <!-- Use Bootstrap's form-control class for styling and input-group for currency symbol -->
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">$</span> <!-- Dollar sign -->
+                                                </div>
+                                                
+                                                <input type="number" class="form-control" id="bid" placeholder="0.00" name="bid" data-bs-toggle="tooltip" title="Your bid must greater than the current one">
+                                                <button type="submit" class="btn btn-primary">Make your Bid</button>
+                                            </div>
+                                        
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                {% if user.id == listing.winner.id %}
+                                    <h2>Congrats! You're the winner</h2>
+                                {% elif user.id != listing.seller.id %}
+                                    <h2>The bid is sold</h2>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if user.id == listing.seller.id %}
+                                {% if listing.winner %}
+                                    <h2 class="text-color-red">You've sold the lot to {{ listing.winner.username }}</h2>
+                                
+                                {% else %}
+                                    <form action="{% url "close_auction" %}" method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="listing_id" value="{{ listing.id }}">
-                                        {% if in_watchlist %}
-                                        <input type="hidden" name="action" value="remove">
-                                        <button type="submit" class="btn btn-danger">Remove from Watchlist</button>
-                                        {% else %}
-                                        <input type="hidden" name="action" value="add">
-                                        <button type="submit" class="btn btn-secondary">Add to Watchlist</button>
-                                        {% endif %}
+                                        <button type="submit" class="btn btn-primary">Close and Sell</button>
                                     </form>
-                                </div>
-                            </div>
-                            {% if listing.is_active %}
-                                <span class="badge bg-info">Active</span>
-                            {% elif not listing.is_active %}
-                                <span class="badge bg-secondary">Sold</span>
+                                {% endif %}
+                            {% else %}
+                            
                             {% endif %}
-                            <img src=" {{ listing.image_url }} " alt="image description" class="card-img-top" alt="Listing image">
-                            <div class="card-body">
-                                <h4 class="card-title"> {{ listing.title }} </h4>
-                                <p class="card-text"> {{ listing.description }} </p>
-                                <p class="card-text">Starting bid: $ {{ initial_price }}</p>
-                                <p class="card-text">Current bid: <strong>$ {{ latest_bid.amount }}</strong>  by: {{ latest_bid.user }}</p>
-                                <p class="card-text"> {{ bids_count }} bids(s) so far </p>
-                                {% comment %} Bid form {% endcomment %}
-                                {% if listing.is_active %}
-                                    {% if user.id != listing.seller.id %}
-                                        <div class="container mt-5">
-                                            <form class="form-group" action="{% url "listing" listing_id=listing.id %}" method="post">
-
-                                                {% csrf_token %}
-                                                <input type="hidden" name="listing_id" value="{{ listing.id }} ">
-                                                <!-- Use Bootstrap's form-control class for styling and input-group for currency symbol -->
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text">$</span> <!-- Dollar sign -->
-                                                    </div>
-                                                    
-                                                    <input type="number" class="form-control" id="bid" placeholder="0.00" name="bid" data-bs-toggle="tooltip" title="Your bid must greater than the current one">
-                                                    <button type="submit" class="btn btn-primary">Make your Bid</button>
-                                                </div>
-                                            
-                                            </form>
-                                        </div>
-                                    {% endif %}
-                                {% else %}
-                                    {% if user.id == listing.winner.id %}
-                                        <h2>Congrats! You're the winner</h2>
-                                    {% elif user.id != listing.seller.id %}
-                                        <h2>The bid is sold</h2>
-                                    {% endif %}
-                                {% endif %}
-
-                                {% if user.id == listing.seller.id %}
-                                    {% if listing.winner %}
-                                        <h2 class="text-color-red">You've sold the lot to {{ listing.winner.username }}</h2>
-                                    
-                                    {% else %}
-                                        <form action="{% url "close_auction" %}" method="post">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="listing_id" value="{{ listing.id }}">
-                                            <button type="submit" class="btn btn-primary">Close and Sell</button>
-                                        </form>
-                                    {% endif %}
-                                {% else %}
-                                
-                                {% endif %}
-                                
-                                <p>Seller: {{ listing.seller.username }} </p>
-                                
-                            </div>
-                        </div>
+                            
+                            <p>Seller: {{ listing.seller.username }} </p>
+                            
                         </div>
                     </div>
+                    
+                    {% if listing.comments %}
+                        <aside class="d-flex justify-content-between align-items-center my-4">
+                            <h4 class="h6"> {{ listing.commments_count }} Comments</h4>
+                        </aside>
+                    {% endif %}
+                    
+                    {% comment %} comment form {% endcomment %}
+                    <div class="card bg-light">
+                        <header class="card-header border-0 bg-transparent">
+                          <p class="fw-semibold text-decoration-none">{{ user.username }}</p>
+                        </header>
+                        <div class="card-body py-1">
+                          <form id="comment_form" action=" {% url "add_comment" %} " method="POST">
+                            {% csrf_token %}
+                            <div>
+                              <label for="exampleFormControlTextarea1" class="visually-hidden">
+                                Comment</label
+                              >
+                              <textarea
+                                class="form-control form-control-sm border border-2 rounded-1"
+                                id="exampleFormControlTextarea1"
+                                style="height: 50px"
+                                placeholder="Add a comment..."
+                                minlength="3"
+                                maxlength="255"
+                                required
+                                name="content"
+                              ></textarea>
+                              <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                            </div>
+                          </form>
+                        </div>
+                        <footer class="card-footer bg-transparent border-0 text-end">
+                          <button
+                            form="comment_form"
+                            type="submit"
+                            class="btn btn-primary btn-sm"
+                          >
+                            Submit
+                          </button>
+                        </footer>
+                      </div>
+
+                    {% for comment in comments %}
+                        <article class="card bg-light my-3">
+                            <header class="card-header border-0 bg-transparent d-flex align-items-center">
+                                <div>
+                                    <h6 class="fw-semibold text-decoration-none">{{ comment.user.username }}</h6>
+                                </div>
+
+                            </header>
+                            <div class="card-body py-2 px-3">
+                                <p>{{ comment.content }}</p>
+                            </div>
+                            <footer class="card-footer bg-white border-0 py-1 px-3">
+                                <small class="text-sm">{{ comment.timestamp }}</small>
+                            </footer>
+                            </article>
+                    {% endfor %}
+
+                </div>
             </div>
+        </div>
             
-            {% else %}
-            <h2>You're not logged in to view the lisntings</h2>
-            {% endif %}
+    {% else %}
+        <h2>You're not logged in to view the lisntings</h2>
+    {% endif %}
 {% endblock %}
